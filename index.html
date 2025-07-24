@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Steel Horizon — Портал</title>
+  <style>
+/* Глобальный сброс и базовые стили */
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; font-family:'Segoe UI', Tahoma, sans-serif; overflow:hidden; }
+body { background:#000; color:#eee; transition: background .5s, color .5s; }
+body.light { background:#f2f2f2; color:#222; }
+a { color:#2af598; text-decoration:none; }
+a:hover { text-decoration:underline; }
+/* Параллакс-фон */
+#parallax {
+  position:fixed; width:100%; height:100%; top:0; left:0; background: url('https://i.postimg.cc/g0c4NpsM/8fac621f-08aa-465b-8832-18d4ff01fb44.avif') center/cover fixed;
+  z-index:-2; filter:brightness(.4);
+  animation: bgPulse 10s ease-in-out infinite;
+}
+@keyframes bgPulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+/* Контейнер */
+#app { display:flex; height:100%; }
+/* Боковая панель */
+#sidebar {
+  width:260px; padding:20px; background: rgba(20,20,20,.85); box-shadow: 2px 0 10px rgba(0,0,0,.7);
+  display:flex; flex-direction:column; transition: width .3s;
+}
+body.light #sidebar { background: rgba(250,250,250,.95); }
+#sidebar h1 {
+  font-size:2em; color:#2af598; margin-bottom:20px;
+  text-shadow:0 0 10px rgba(42,245,152,.8);
+}
+#search {
+  width:100%; padding:12px 16px; border:none; border-radius:25px;
+  background:rgba(0,0,0,.4); color:#eee; margin-bottom:20px;
+  transition: background .3s;
+}
+body.light #search { background:rgba(255,255,255,.6); color:#222; }
+nav { flex:1; }
+nav button {
+  width:100%; margin-bottom:12px; padding:12px 16px;
+  background:rgba(0,0,0,.4); border:none; border-radius:8px;
+  color:#eee; font-size:1em; text-align:left;
+  cursor:pointer; position:relative;
+  transition: background .3s, color .3s, box-shadow .3s;
+}
+nav button:hover, nav button.active {
+  background:rgba(42,245,152,.2); color:#2af598;
+  box-shadow:0 0 15px rgba(42,245,152,.6);
+}
+nav button.active::before {
+  content:''; position:absolute; left:8px; top:50%; width:6px; height:50%;
+  background:#2af598; transform:translateY(-50%); border-radius:3px;
+}
+#themeToggle {
+  margin-top:20px; padding:12px;
+  background: #2af598; border:none; border-radius:25px;
+  color:#111; font-weight:bold; cursor:pointer;
+  box-shadow:0 0 15px rgba(42,245,152,.7);
+  transition: background .3s;
+}
+#themeToggle:hover { background:#1dbf72; }
+/* Содержимое */
+main {
+  flex:1; overflow:auto; padding:40px; position:relative;
+  backdrop-filter:blur(4px);
+  transition:background .5s;
+}
+body.light main { background:rgba(255,255,255,.8); color:#222; }
+.fade-in {
+  animation:fadeIn 0.6s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+/* Раздел «Персонажи» */
+.char-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:20px; margin-top:20px;
+}
+.char-card {
+  background:rgba(0,0,0,.5); border-radius:12px; overflow:hidden;
+  box-shadow:0 0 15px rgba(0,0,0,.5);
+  transition:transform .3s, box-shadow .3s;
+  cursor:pointer;
+}
+.char-card:hover {
+  transform:translateY(-8px);
+  box-shadow:0 0 25px rgba(42,245,152,.8);
+}
+.char-card h3 { padding:12px; background:rgba(42,245,152,.1); }
+.char-card p { padding:0 12px 12px; font-size:.9em; line-height:1.4; }
+/* Новости: карусель */
+.news-carousel { position:relative; overflow:hidden; margin-top:20px; }
+.news-slide {
+  min-width:100%; transition:transform .5s; padding:20px;
+}
+.news-slide h3 { color:#2af598; font-size:1.3em; }
+.news-slide time { font-size:.8em; color:#aaa; }
+#newsPrev, #newsNext {
+  position:absolute; top:50%; transform:translateY(-50%);
+  background:rgba(0,0,0,.4); border:none; border-radius:50%;
+  width:36px; height:36px; color:#eee; font-size:1.2em;
+  cursor:pointer; transition:background .3s;
+}
+#newsPrev:hover, #newsNext:hover { background:rgba(42,245,152,.6); }
+#newsPrev { left:10px; } #newsNext{ right:10px; }
+/* Календарь */
+.calendar {
+  margin-top:20px;
+}
+.cal-header {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:10px;
+}
+.cal-header button {
+  background:none; border:none; color:#2af598; font-size:1.2em; cursor:pointer;
+  transition:color .3s;
+}
+.cal-header button:hover { color:#1dbf72; }
+.cal-grid {
+  display:grid; grid-template-columns:repeat(7,1fr); gap:8px;
+}
+.cal-day {
+  background:rgba(0,0,0,.5); color:#eee; padding:10px;
+  border-radius:6px; text-align:center; position:relative;
+  transition:background .3s, transform .3s;
+  cursor:pointer;
+}
+.cal-day:hover { background:rgba(42,245,152,.4); transform:translateY(-3px); }
+.cal-day.today::after {
+  content:'Сегодня'; position:absolute; font-size:.75em;
+  bottom:4px; width:100%; left:0; color:#1dbf72;
+}
+/* Гайды и FAQ (аккордеоны) */
+.faq-block { margin-top:20px; }
+.faq-item {
+  background:rgba(0,0,0,.5); border-radius:8px; margin-bottom:12px;
+  overflow:hidden; transition:background .3s;
+}
+.faq-item:hover { background:rgba(42,245,152,.2); }
+.faq-title {
+  padding:12px 16px; font-size:1.1em; cursor:pointer;
+  position:relative;
+}
+.faq-title::after {
+  content:'+'; position:absolute; right:16px;
+  transition:transform .3s;
+}
+.faq-item.open .faq-title::after { transform:rotate(45deg); }
+.faq-content {
+  max-height:0; overflow:hidden;
+  padding:0 16px; transition:max-height .4s, padding .4s;
+}
+.faq-item.open .faq-content {
+  padding:12px 16px; max-height:500px;
+}
+/* Соцсети */
+.social-list { margin-top:20px; list-style:none; }
+.social-list li { margin-bottom:10px; }
+.social-list a {
+  display:inline-block; padding:8px 12px; background:rgba(0,0,0,.5);
+  border-radius:6px; transition:background .3s;
+}
+.social-list a:hover { background:rgba(42,245,152,.6); }
+/* Отзывы */
+.review-list { margin-top:20px; }
+.review {
+  background:rgba(0,0,0,.5); padding:12px 16px; border-radius:8px; margin-bottom:12px;
+  position:relative; transition:transform .3s;
+}
+.review:hover { transform:scale(1.02); }
+.review time {
+  position:absolute; top:8px; right:12px; font-size:.8em; color:#aaa;
+}
+.review .stars {
+  margin-bottom:8px; color:#ffb800;
+}
+.review button.del {
+  position:absolute; top:4px; left:8px;
+  background:#e63946; border:none; color:#fff;
+  border-radius:50%; width:20px; height:20px;
+  cursor:pointer; opacity:.8;
+  transition:opacity .3s;
+}
+.review button.del:hover { opacity:1; }
+/* Отзыв форма */
+#reviewForm {
+  background:rgba(0,0,0,.6); border-radius:8px;
+  padding:16px; margin-top:12px;
+}
+#reviewForm textarea {
+  width:100%; height:60px; padding:10px; border:none; border-radius:6px;
+  resize:none; margin-bottom:10px;
+}
+#reviewForm .rating-stars {
+  margin-bottom:10px;
+}
+.rating-stars span {
+  font-size:1.3em; cursor:pointer; color:#444;
+  transition:color .3s;
+}
+.rating-stars span.selected, .rating-stars span:hover, .rating-stars span:hover ~ span {
+  color:#2af598;
+}
+#reviewForm button.submit {
+  padding:10px 18px; border:none; border-radius:25px;
+  background:#2af598; color:#111; font-weight:bold;
+  cursor:pointer; transition:background .3s;
+}
+#reviewForm button.submit:hover { background:#1dbf72; }
+/* Адаптив */
+@media(max-width:900px) {
+  #sidebar { width:0; padding:0; overflow:hidden; }
+  main, .reviews { width:100%; }
+}
+  </style>
+</head>
+<body>
+  <div id="parallax"></div>
+  <div id="app">
+    <div id="sidebar">
+      <h1>Steel Horizon</h1>
+      <input id="search" placeholder="Искать..." />
+      <nav>
+        <button data-sec="characters" class="active">Персонажи</button>
+        <button data-sec="news">Новости</button>
+        <button data-sec="calendar">Календарь</button>
+        <button data-sec="guides">Гайды</button>
+        <button data-sec="community">Соцсети</button>
+        <button data-sec="faq">FAQ</button>
+        <button data-sec="reviews">Отзывы</button>
+      </nav>
+      <button id="themeToggle">Светлая тема</button>
+    </div>
+    <main id="content"></main>
+    <aside class="reviews">
+      <h2>Отзывы</h2>
+      <div class="review-list" id="reviewList"></div>
+      <form id="reviewForm">
+        <textarea placeholder="Ваш отзыв..." required></textarea>
+        <div class="rating-stars">
+          <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+        </div>
+        <button type="submit" class="submit">Отправить</button>
+      </form>
+    </aside>
+  </div>
+
+  <script>
+(function(){
+  const sections = {
+    characters: `<h2>Персонажи</h2>
+      <div class="char-grid">
+        <div class="char-card"><h3>Командир Коготь</h3><p>Командир Коготь — опытный лидер, который ведёт свою команду через самые опасные и непредсказуемые ситуации. С детства он обучался выживанию в суровых условиях, а служба в спецназе закалила его волю и стратегическое мышление. Коготь не только мастер тактики, но и искусный стрелок, умеющий принимать молниеносные решения под давлением. Его главная задача — обеспечить безопасность команды и довести миссию до конца, даже когда шансы кажутся невысокими. Командир всегда рядом с бойцами, поддерживает мораль и вдохновляет своим примером. В его арсенале — надежный автомат, пара гранат и навыки рукопашного боя. С каждой выполненной задачей он становится сильнее, открывая новые способности и улучшая экипировку.</p></div>
+        <div class="char-card"><h3>Снайпер Ворон</h3><p>Ворон — холодный и точный стрелок, мастер дальнего боя и незаметного проникновения. Его глаза — словно орлиные, он видит цель за сотни метров и никогда не промахивается. Благодаря долгим годам тренировки и непревзойдённой концентрации Ворон — незаменимый член команды, который умеет обезвреживать угрозы, прежде чем они станут проблемой. Его снайперская винтовка — это продолжение его руки, а маскировка и скрытность позволяют ему оставаться невидимым для врага. Ворон предпочитает действовать в тени, подбираясь к цели так тихо, что никто даже не подозревает о его присутствии. Его холодный расчет и терпение — залог успеха команды в сложнейших операциях.</p></div>
+        <div class="char-card"><h3>Разведчик Тень</h3><p>Тень — ловкий и проворный разведчик, эксперт по скрытным операциям и сбору информации. Его скорость и внимательность позволяют проникать на территорию противника, не замеченным, и возвращаться с ценными данными. Тень — глаза и уши команды, всегда на шаг впереди. Оснащён легкой броней и набором гаджетов для взлома и подслушивания, он отлично ориентируется в любых условиях — будь то городские руины или густой лес. Его навыки скрытности и быстроты делают его незаменимым в миссиях разведки и диверсий. Несмотря на свою тихую натуру, Тень всегда готов вступить в бой, если это потребуется.</p></div>
+      </div>`,
+    news: `<h2>Новости</h2>
+      <div class="news-carousel" id="newsCarousel">
+        <div class="news-slide"><h3>Патч 1.0.5</h3><time>24 июля 2025</time><p>Исправлене багов с диалогом.</p></div>
+        <div class="news-slide"><h3>Начало: Призрак Востока</h3><time>23 июля 2025</time><p>Начало создание проекта!</p></div>
+      </div>
+      <button id="newsPrev">←</button><button id="newsNext">→</button>`,
+    calendar: `<h2>Календарь</h2><div class="calendar"><div class="cal-header"></div><div class="cal-grid"></div></div>`,
+    guides: `<h2>Гайды</h2><div class="faq-block"></div>`,
+    community: `<h2>Соцсети</h2><ul class="social-list">
+      <li><a href="https://t.me/Steel_Horizon_The_Ghosts_of_Eas" target="_blank">Telegram</a></li>
+      <li><a href="https://discord.gg/63WgjWYM" target="_blank">Discord</a></li>
+      <li><a href="mailto:steelhorizoninfo@gmail.com">Email поддержки</a></li>
+    </ul>`,
+    faq: `<h2>FAQ</h2><div class="faq-block">
+      <div class="faq-item"><div class="faq-title">Как начать?</div><div class="faq-content">Запустите игру, пройдите обучение.</div></div>
+      <div class="faq-item"><div class="faq-title">Где настройки?</div><div class="faq-content">В главном меню → Настройки.</div></div>
+    </div>`,
+    reviews: `<p>Отзывы — добавляйте справа!</p>`
+  };
+
+  const faqData = [
+    {q:"Основы боя", a:"Основы боя — это то, с чего начинается путь каждого солдата в Steel Horizon. Владение оружием, понимание баллистики, знание правил стрельбы и умение использовать укрытия — обязательные навыки для выживания. Точная стрельба, правильный выбор оружия под конкретную ситуацию и умение быстро перезаряжаться делают бойца эффективным в бою. Не забывайте следить за уровнем здоровья и использовать аптечки вовремя. Также важно понимать виды оружия, их преимущества и недостатки, а также особенности брони и техники врага. Постоянное обучение и практика помогут повысить боевой опыт и подготовиться к самым сложным испытаниям."},
+    {q:"Тактика", a:"Тактика — основа успешного ведения боя и выполнения миссий. В Steel Horizon каждый бой — это не просто перестрелка, а тщательно спланированная операция, где важна каждая секунда и каждое решение. Команда должна грамотно распределять роли: Командир разрабатывает план, Снайпер обеспечивает прикрытие с дальних позиций, а Разведчик собирает информацию о враге и маршрутах. Координация и взаимопонимание — ключ к победе. Используйте укрытия, окружайте врага, устраивайте засады и контролируйте территорию. Умение быстро адаптироваться к ситуации, менять планы и поддерживать связь с командой — залог выживания и успеха."},
+    {q:"Дроны", a:"Дроны — незаменимые помощники в поле боя, которые дают команде преимущество благодаря разведке и тактической поддержке. Они оснащены камерами высокого разрешения, инфракрасными датчиками и шумоподавлением, что позволяет исследовать территорию даже в самых опасных условиях. Использование дронов позволяет обнаружить вражеские позиции, проложить безопасные маршруты и заранее подготовиться к бою. Управление дроном требует точности и быстроты реакции — оператор должен мгновенно реагировать на изменения обстановки и передавать команде актуальную информацию. С помощью дронов команда может проводить скрытные операции, минимизируя риск для солдат. Улучшения дронов открывают новые возможности: от создания помех для врага до нанесения точечных ударов."}
+  ];
+
+  let currentSlide = 0;
+
+  function init(){
+    loadSection('characters');
+    document.querySelectorAll('#sidebar nav button').forEach(btn=>{
+      btn.onclick = ()=>{
+        loadSection(btn.dataset.sec);
+        document.querySelectorAll('#sidebar nav button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+      };
+    });
+    document.getElementById('themeToggle').onclick = () => document.body.classList.toggle('light');
+    document.getElementById('search').oninput = ev => {
+      const q = ev.target.value.toLowerCase();
+      document.querySelectorAll('#sidebar nav button').forEach(b=>{
+        b.parentElement.style.display = b.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    };
+    initReviews();
+  }
+
+  function loadSection(name){
+    const content = document.getElementById('content');
+    content.innerHTML = sections[name];
+    content.classList.add('fade-in');
+    setTimeout(()=>content.classList.remove('fade-in'),600);
+
+    if(name==='news') initCarousel();
+    if(name==='calendar') initCalendar();
+    if(name==='guides') populateFaq('.faq-block', faqData);
+    if(name==='faq') populateFaq('.faq-block', faqData);
+  }
+
+  function initCarousel(){
+    const slides = [...document.querySelectorAll('.news-slide')];
+    const container = document.getElementById('newsCarousel');
+    document.getElementById('newsPrev').onclick = ()=> {
+      currentSlide = (currentSlide-1+slides.length)%slides.length;
+      container.style.transform=`translateX(-${currentSlide*100}%)`;
+    };
+    document.getElementById('newsNext').onclick = ()=> {
+      currentSlide = (currentSlide+1)%slides.length;
+      container.style.transform=`translateX(-${currentSlide*100}%)`;
+    };
+  }
+
+  function populateFaq(selector, data){
+    const block = document.querySelector(selector);
+    block.innerHTML = '';
+    data.forEach(item=>{
+      const div = document.createElement('div'); div.className='faq-item';
+      div.innerHTML = `<div class="faq-title">${item.q}</div><div class="faq-content">${item.a}</div>`;
+      block.appendChild(div);
+      div.onclick = ()=> div.classList.toggle('open');
+    });
+  }
+
+  function initCalendar(){
+    const header = document.querySelector('.cal-header');
+    const grid = document.querySelector('.cal-grid');
+    let d = new Date(), y=d.getFullYear(), m=d.getMonth();
+    function draw(){
+      header.innerHTML = `<button id="cprev">←</button><span>${new Date(y,m).toLocaleString('ru',{month:'long',year:'numeric'})}</span><button id="cnext">→</button>`;
+      grid.innerHTML='';
+      const first = new Date(y,m,1).getDay();
+      const shift = (first+6)%7;
+      for(let i=0;i<shift;i++) grid.innerHTML += '<div class="cal-day"></div>';
+      const total = new Date(y,m+1,0).getDate();
+      for(let d=1; d<=total; d++){
+        const isToday = d===new Date().getDate() && m===new Date().getMonth() && y===new Date().getFullYear();
+        grid.innerHTML += `<div class="cal-day${isToday?' today':''}">${d}</div>`;
+      }
+      document.getElementById('cprev').onclick = ()=>{ m--; if(m<0){m=11; y--;} draw(); };
+      document.getElementById('cnext').onclick = ()=>{ m++; if(m>11){m=0; y++;} draw(); };
+    }
+    draw();
+  }
+
+  // Отзывы
+  let revs = JSON.parse(localStorage.getItem('sh_revs')||'[]');
+  const revList = document.getElementById('reviewList');
+  const revForm = document.getElementById('reviewForm');
+  const stars = [...document.querySelectorAll('.rating-stars span')];
+  let rate=5;
+
+  function renderReviews(){
+    revList.innerHTML='';
+    if(!revs.length){ revList.innerHTML='<p>Пока нет отзывов.</p>'; return; }
+    revs.forEach((r,i)=>{
+      const d=new Date(r.date).toLocaleString();
+      const div = document.createElement('div'); div.className='review';
+      div.innerHTML = `<div class="stars">${'★'.repeat(r.rate)}${'☆'.repeat(5-r.rate)}</div><time>${d}</time><button class="del">×</button><p>${r.text}</p>`;
+      revList.appendChild(div);
+      div.querySelector('.del').onclick = () => {
+        if(confirm('Удалить?')){ revs.splice(i,1); save(); renderReviews(); }
+      };
+      div.querySelector('p').ondblclick = () => {
+        const e = prompt('Редактируй:', r.text);
+        if(e){ revs[i].text=e; revs[i].date=new Date(); save(); renderReviews(); }
+      };
+    });
+  }
+  function save(){ localStorage.setItem('sh_revs', JSON.stringify(revs)); }
+
+  revForm.onsubmit = e => {
+    e.preventDefault();
+    const txt = revForm.querySelector('textarea').value.trim();
+    if(txt.length<5){ alert('Напиши длиннее!'); return; }
+    revs.unshift({ text:txt, rate, date: new Date() });
+    save(); renderReviews(); revForm.reset(); rate=5; stars.forEach(s=>s.classList.remove('selected'));
+  };
+  stars.forEach(s=>s.onclick = ()=>{
+    rate = +s.dataset.val;
+    stars.forEach(x=> x.classList.toggle('selected', +x.dataset.val<=rate));
+  });
+
+  // Инициализация
+  init();
+})();
+  </script>
+</body>
+</html>
